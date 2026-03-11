@@ -162,7 +162,7 @@ export function OutgoingDocs() {
 
     if (error) {
       console.error('Error adding doc:', error);
-      setFlash({ message: 'Lỗi khi lưu văn bản!', type: 'canh-bao' });
+      setFlash({ message: `Lỗi khi lưu văn bản: ${error.message}`, type: 'canh-bao' });
     } else {
       if (data) setDocs([data[0], ...docs]);
       setIsModalOpen(false);

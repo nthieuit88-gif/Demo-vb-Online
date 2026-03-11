@@ -103,7 +103,7 @@ export function Request() {
 
       if (error) {
         console.error('Error saving request:', error);
-        setFlash({ message: 'Lỗi khi lưu yêu cầu lên hệ thống!', type: 'canh-bao' });
+        setFlash({ message: `Lỗi khi lưu yêu cầu lên hệ thống: ${error.message}`, type: 'canh-bao' });
         setIsSubmitting(false);
         return;
       }
