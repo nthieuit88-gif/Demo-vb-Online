@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { FlashMessage, FlashType } from '../components/FlashMessage';
 import { banPhaoHoa } from '../utils/confetti';
-import { Signer } from './Signers';
 import { supabase } from '../lib/supabase';
 
 interface OutgoingDoc {
@@ -15,14 +14,9 @@ interface OutgoingDoc {
   nguoi_tao?: string;
   trang_thai?: string;
   ngay_ban_hanh: string;
+  muc_do?: string;
+  ghi_chu?: string;
 }
-
-const initialDocs: OutgoingDoc[] = [
-  { id: 1, so: '78/TB-VP', loai: 'Thông báo', trich_yeu: 'Thông báo lịch họp giao ban tuần thứ 11 năm 2024', co_quan_gui: 'Văn phòng', han_xu_ly: '2024-03-15', nguoi_tao: 'Admin', trang_thai: 'Hoàn thành', ngay_ban_hanh: '2024-03-10' },
-  { id: 2, so: '145/CV-UBND', loai: 'Công văn', trich_yeu: 'Về việc báo cáo tình hình thực hiện dự án', co_quan_gui: 'UBND tỉnh', han_xu_ly: '2024-03-12', nguoi_tao: 'Admin', trang_thai: 'Đang xử lý', ngay_ban_hanh: '2024-03-09' },
-  { id: 3, so: '42/QD-KTHT', loai: 'Quyết định', trich_yeu: 'Quyết định thành lập đoàn kiểm tra', co_quan_gui: 'Phòng KTHT', han_xu_ly: '2024-03-20', nguoi_tao: 'Admin', trang_thai: 'Chờ xử lý', ngay_ban_hanh: '2024-03-08' },
-  { id: 4, so: '15/BC-TC', loai: 'Báo cáo', trich_yeu: 'Báo cáo quyết toán năm 2023', co_quan_gui: 'Phòng TC-KT', han_xu_ly: '2024-03-10', nguoi_tao: 'Admin', trang_thai: 'Hoàn thành', ngay_ban_hanh: '2024-03-05' },
-];
 
 export function OutgoingDocs() {
   const [docs, setDocs] = useState<OutgoingDoc[]>([]);
@@ -57,8 +51,8 @@ export function OutgoingDocs() {
     trich_yeu: '',
     co_quan_gui: '',
     han_xu_ly: '',
-    mucDo: 'thuong',
-    ghiChu: ''
+    muc_do: 'thuong',
+    ghi_chu: ''
   });
 
   const user = JSON.parse(localStorage.getItem('nguoiDungHienTai') || '{"tenHienThi":"Quản trị viên", "vaiTro": "Admin"}');
@@ -114,7 +108,7 @@ export function OutgoingDocs() {
     } else {
       if (data) setDocs([data[0], ...docs]);
       setIsModalOpen(false);
-      setFormData({ so: '', loai: '', trich_yeu: '', co_quan_gui: '', han_xu_ly: '', mucDo: 'thuong', ghiChu: '' });
+      setFormData({ so: '', loai: '', trich_yeu: '', co_quan_gui: '', han_xu_ly: '', muc_do: 'thuong', ghi_chu: '' });
       setFlash({ message: 'Thêm văn bản đi thành công! 🎉', type: 'thanh-cong' });
       banPhaoHoa();
     }
@@ -262,7 +256,7 @@ export function OutgoingDocs() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Mức độ ưu tiên</label>
-                  <select className="o-nhap py-2.5 cursor-pointer appearance-none" value={formData.mucDo} onChange={e => setFormData({...formData, mucDo: e.target.value})}>
+                  <select className="o-nhap py-2.5 cursor-pointer appearance-none" value={formData.muc_do} onChange={e => setFormData({...formData, muc_do: e.target.value})}>
                     <option value="thuong">Thường</option>
                     <option value="khan">Khẩn</option>
                     <option value="thuong-khan">Thượng khẩn</option>
@@ -273,7 +267,7 @@ export function OutgoingDocs() {
 
               <div className="mb-6">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Ghi chú</label>
-                <textarea className="o-nhap py-2.5 resize-y" rows={2} placeholder="Ghi chú thêm..." value={formData.ghiChu} onChange={e => setFormData({...formData, ghiChu: e.target.value})}></textarea>
+                <textarea className="o-nhap py-2.5 resize-y" rows={2} placeholder="Ghi chú thêm..." value={formData.ghi_chu} onChange={e => setFormData({...formData, ghi_chu: e.target.value})}></textarea>
               </div>
 
               <div className="flex justify-end gap-3 mt-8">
