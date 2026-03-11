@@ -93,7 +93,7 @@ export function Request() {
         .insert([{
           so: soVanBan,
           loai: formData.loai,
-          trichYeu: formData.trichYeu,
+          trich_yeu: formData.trichYeu,
           noiNhan: formData.noiNhan,
           nguoiKy: formData.nguoiKy,
           ngayBanHanh: formData.ngayKy,

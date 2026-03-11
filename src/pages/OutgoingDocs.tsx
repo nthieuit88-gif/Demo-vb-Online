@@ -9,16 +9,19 @@ interface OutgoingDoc {
   id: number;
   so: string;
   loai: string;
-  trichYeu: string;
-  ngayBanHanh: string;
-  hanXuLy?: string;
+  trich_yeu: string;
+  co_quan_gui?: string;
+  han_xu_ly?: string;
+  nguoi_tao?: string;
+  trang_thai?: string;
+  ngay_ban_hanh: string;
 }
 
 const initialDocs: OutgoingDoc[] = [
-  { id: 1, so: '78/TB-VP', loai: 'Thông báo', trichYeu: 'Thông báo lịch họp giao ban tuần thứ 11 năm 2024', ngayBanHanh: '2024-03-10', hanXuLy: '2024-03-15' },
-  { id: 2, so: '145/CV-UBND', loai: 'Công văn', trichYeu: 'Về việc báo cáo tình hình thực hiện dự án', ngayBanHanh: '2024-03-09', hanXuLy: '2024-03-12' },
-  { id: 3, so: '42/QD-KTHT', loai: 'Quyết định', trichYeu: 'Quyết định thành lập đoàn kiểm tra', ngayBanHanh: '2024-03-08', hanXuLy: '2024-03-20' },
-  { id: 4, so: '15/BC-TC', loai: 'Báo cáo', trichYeu: 'Báo cáo quyết toán năm 2023', ngayBanHanh: '2024-03-05', hanXuLy: '2024-03-10' },
+  { id: 1, so: '78/TB-VP', loai: 'Thông báo', trich_yeu: 'Thông báo lịch họp giao ban tuần thứ 11 năm 2024', co_quan_gui: 'Văn phòng', han_xu_ly: '2024-03-15', nguoi_tao: 'Admin', trang_thai: 'Hoàn thành', ngay_ban_hanh: '2024-03-10' },
+  { id: 2, so: '145/CV-UBND', loai: 'Công văn', trich_yeu: 'Về việc báo cáo tình hình thực hiện dự án', co_quan_gui: 'UBND tỉnh', han_xu_ly: '2024-03-12', nguoi_tao: 'Admin', trang_thai: 'Đang xử lý', ngay_ban_hanh: '2024-03-09' },
+  { id: 3, so: '42/QD-KTHT', loai: 'Quyết định', trich_yeu: 'Quyết định thành lập đoàn kiểm tra', co_quan_gui: 'Phòng KTHT', han_xu_ly: '2024-03-20', nguoi_tao: 'Admin', trang_thai: 'Chờ xử lý', ngay_ban_hanh: '2024-03-08' },
+  { id: 4, so: '15/BC-TC', loai: 'Báo cáo', trich_yeu: 'Báo cáo quyết toán năm 2023', co_quan_gui: 'Phòng TC-KT', han_xu_ly: '2024-03-10', nguoi_tao: 'Admin', trang_thai: 'Hoàn thành', ngay_ban_hanh: '2024-03-05' },
 ];
 
 export function OutgoingDocs() {
@@ -27,11 +30,9 @@ export function OutgoingDocs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [flash, setFlash] = useState<{ message: string; type: FlashType } | null>(null);
-  const [signers, setSigners] = useState<Signer[]>([]);
 
   useEffect(() => {
     fetchDocs();
-    fetchSigners();
   }, []);
 
   const fetchDocs = async () => {
@@ -50,30 +51,22 @@ export function OutgoingDocs() {
     setLoading(false);
   };
 
-  const fetchSigners = async () => {
-    const { data, error } = await supabase.from('signers').select('*').eq('status', 'Hoạt động');
-    if (error) {
-      console.error('Error fetching signers:', error);
-    } else {
-      setSigners(data || []);
-    }
-  };
-
   const [formData, setFormData] = useState({
     so: '',
     loai: '',
-    trichYeu: '',
+    trich_yeu: '',
+    co_quan_gui: '',
+    han_xu_ly: '',
     mucDo: 'thuong',
     ghiChu: ''
   });
 
   const user = JSON.parse(localStorage.getItem('nguoiDungHienTai') || '{"tenHienThi":"Quản trị viên", "vaiTro": "Admin"}');
-  const userRole = user.vaiTro || 'Admin';
-  const canEditStatus = userRole === 'Admin' || userRole === 'Văn thư';
 
   const filteredDocs = docs.filter(doc => 
     doc.so.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.trichYeu.toLowerCase().includes(searchTerm.toLowerCase())
+    doc.trich_yeu.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (doc.co_quan_gui && doc.co_quan_gui.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleDelete = async (id: number) => {
@@ -91,18 +84,23 @@ export function OutgoingDocs() {
   const handleView = (id: number) => {
     const doc = docs.find(d => d.id === id);
     if (doc) {
-      setFlash({ message: `📋 ${doc.so}: ${doc.trichYeu}`, type: 'thong-tin' });
+      setFlash({ message: `📋 ${doc.so}: ${doc.trich_yeu}`, type: 'thong-tin' });
     }
   };
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const userName = user.tenHienThi || user.email?.split('@')[0] || 'Người dùng';
+    const userName = user.tenHienThi || 'Người dùng';
     
     const newDocData = {
       so: formData.so,
       loai: formData.loai,
-      trichYeu: formData.trichYeu
+      trich_yeu: formData.trich_yeu,
+      co_quan_gui: formData.co_quan_gui,
+      han_xu_ly: formData.han_xu_ly,
+      nguoi_tao: userName,
+      trang_thai: 'Chờ xử lý',
+      ngay_ban_hanh: new Date().toISOString().split('T')[0]
     };
 
     const { data, error } = await supabase
@@ -116,7 +114,7 @@ export function OutgoingDocs() {
     } else {
       if (data) setDocs([data[0], ...docs]);
       setIsModalOpen(false);
-      setFormData({ ...formData, so: '', trichYeu: '' });
+      setFormData({ so: '', loai: '', trich_yeu: '', co_quan_gui: '', han_xu_ly: '', mucDo: 'thuong', ghiChu: '' });
       setFlash({ message: 'Thêm văn bản đi thành công! 🎉', type: 'thanh-cong' });
       banPhaoHoa();
     }
@@ -167,6 +165,10 @@ export function OutgoingDocs() {
                 <th className="p-4">Số/Ký hiệu</th>
                 <th className="p-4">Loại VB</th>
                 <th className="p-4">Trích yếu nội dung</th>
+                <th className="p-4">Cơ quan gửi</th>
+                <th className="p-4">Hạn xử lý</th>
+                <th className="p-4">Người tạo</th>
+                <th className="p-4">Trạng thái</th>
                 <th className="p-4">Thao tác</th>
               </tr>
             </thead>
@@ -175,7 +177,19 @@ export function OutgoingDocs() {
                 <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                   <td className="p-4 font-bold text-blue-800 dark:text-blue-400 whitespace-nowrap">{doc.so}</td>
                   <td className="p-4 whitespace-nowrap">{doc.loai}</td>
-                  <td className="p-4 min-w-[200px] max-w-[300px] truncate" title={doc.trichYeu}>{doc.trichYeu}</td>
+                  <td className="p-4 min-w-[200px] max-w-[300px] truncate" title={doc.trich_yeu}>{doc.trich_yeu}</td>
+                  <td className="p-4 whitespace-nowrap">{doc.co_quan_gui || '—'}</td>
+                  <td className="p-4 whitespace-nowrap">{formatDate(doc.han_xu_ly)}</td>
+                  <td className="p-4 whitespace-nowrap">{doc.nguoi_tao || '—'}</td>
+                  <td className="p-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                      doc.trang_thai === 'Hoàn thành' ? 'bg-green-100 text-green-700' :
+                      doc.trang_thai === 'Đang xử lý' ? 'bg-blue-100 text-blue-700' :
+                      'bg-slate-100 text-slate-700'
+                    }`}>
+                      {doc.trang_thai || 'Chờ xử lý'}
+                    </span>
+                  </td>
                   <td className="p-4 whitespace-nowrap">
                     <div className="flex gap-2">
                       <button className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors" onClick={() => handleView(doc.id)} title="Xem chi tiết">👁️</button>
@@ -185,7 +199,7 @@ export function OutgoingDocs() {
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-slate-400">Không tìm thấy văn bản nào</td>
+                  <td colSpan={8} className="p-8 text-center text-slate-400">Không tìm thấy văn bản nào</td>
                 </tr>
               )}
             </tbody>
@@ -231,7 +245,18 @@ export function OutgoingDocs() {
 
               <div className="mb-4">
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Trích yếu nội dung *</label>
-                <textarea className="o-nhap py-2.5 resize-y" rows={3} placeholder="Nhập trích yếu nội dung văn bản..." required value={formData.trichYeu} onChange={e => setFormData({...formData, trichYeu: e.target.value})}></textarea>
+                <textarea className="o-nhap py-2.5 resize-y" rows={3} placeholder="Nhập trích yếu nội dung văn bản..." required value={formData.trich_yeu} onChange={e => setFormData({...formData, trich_yeu: e.target.value})}></textarea>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Cơ quan gửi</label>
+                  <input type="text" className="o-nhap py-2.5" placeholder="VD: UBND tỉnh" value={formData.co_quan_gui} onChange={e => setFormData({...formData, co_quan_gui: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Hạn xử lý</label>
+                  <input type="date" className="o-nhap py-2.5" value={formData.han_xu_ly} onChange={e => setFormData({...formData, han_xu_ly: e.target.value})} />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
