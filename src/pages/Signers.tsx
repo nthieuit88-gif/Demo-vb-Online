@@ -23,6 +23,7 @@ export function Signers() {
 
   const user = JSON.parse(localStorage.getItem('nguoiDungHienTai') || '{"vaiTro":"Người dùng"}');
   const userRole = user.vaiTro || 'Người dùng';
+  const canManageSigners = userRole === 'Admin' || userRole === 'Văn thư';
 
   useEffect(() => {
     fetchSigners();
@@ -40,6 +41,10 @@ export function Signers() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageSigners) {
+      setFlash({ message: 'Bạn không có quyền thực hiện thao tác này!', type: 'canh-bao' });
+      return;
+    }
     if (editingSigner) {
       const { error } = await supabase
         .from('signers')
@@ -70,6 +75,10 @@ export function Signers() {
   };
 
   const handleDelete = async (id: number) => {
+    if (!canManageSigners) {
+      setFlash({ message: 'Bạn không có quyền thực hiện thao tác này!', type: 'canh-bao' });
+      return;
+    }
     if (window.confirm('Bạn có chắc muốn xóa người ký này?')) {
       const { error } = await supabase.from('signers').delete().eq('id', id);
       if (error) {
@@ -106,9 +115,11 @@ export function Signers() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_2px_15px_rgba(0,0,0,0.06)] overflow-hidden hieu-ung-xuat-hien p-6 md:p-8">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Danh sách người ký</h3>
-          <button className="nut nut-chinh nut-nho" onClick={openAddModal}>
-            + Thêm người ký
-          </button>
+          {canManageSigners && (
+            <button className="nut nut-chinh nut-nho" onClick={openAddModal}>
+              + Thêm người ký
+            </button>
+          )}
         </div>
 
         <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-xl">
@@ -134,22 +145,24 @@ export function Signers() {
                     </span>
                   </td>
                   <td className="p-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button 
-                        className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors"
-                        onClick={() => openEditModal(s)}
-                        title="Sửa"
-                      >
-                        ✏️
-                      </button>
-                      <button 
-                        className="p-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
-                        onClick={() => handleDelete(s.id)}
-                        title="Xóa"
-                      >
-                        🗑️
-                      </button>
-                    </div>
+                    {canManageSigners && (
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors"
+                          onClick={() => openEditModal(s)}
+                          title="Sửa"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="p-1.5 rounded-md bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 transition-colors"
+                          onClick={() => handleDelete(s.id)}
+                          title="Xóa"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
