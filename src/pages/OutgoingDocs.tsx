@@ -16,17 +16,26 @@ interface OutgoingDoc {
   ngay_ban_hanh: string;
   muc_do?: string;
   ghi_chu?: string;
+  nguoi_ky?: string;
 }
 
 export function OutgoingDocs() {
   const [docs, setDocs] = useState<OutgoingDoc[]>([]);
+  const [signers, setSigners] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [flash, setFlash] = useState<{ message: string; type: FlashType } | null>(null);
 
   useEffect(() => {
+    if (isModalOpen) {
+      fetchSigners();
+    }
+  }, [isModalOpen]);
+
+  useEffect(() => {
     fetchDocs();
+    fetchSigners();
   }, []);
 
   const fetchDocs = async () => {
@@ -45,6 +54,18 @@ export function OutgoingDocs() {
     setLoading(false);
   };
 
+  const fetchSigners = async () => {
+    const { data, error } = await supabase
+      .from('signers')
+      .select('id, name');
+    
+    if (error) {
+      console.error('Error fetching signers:', error);
+    } else {
+      setSigners(data || []);
+    }
+  };
+
   const [formData, setFormData] = useState({
     so: '',
     loai: '',
@@ -52,7 +73,8 @@ export function OutgoingDocs() {
     co_quan_gui: '',
     han_xu_ly: '',
     muc_do: 'thuong',
-    ghi_chu: ''
+    ghi_chu: '',
+    nguoi_ky: ''
   });
 
   const user = JSON.parse(localStorage.getItem('nguoiDungHienTai') || '{"tenHienThi":"Quản trị viên", "vaiTro": "Admin"}');
@@ -124,7 +146,7 @@ export function OutgoingDocs() {
     } else {
       if (data) setDocs([data[0], ...docs]);
       setIsModalOpen(false);
-      setFormData({ so: '', loai: '', trich_yeu: '', co_quan_gui: '', han_xu_ly: '', muc_do: 'thuong', ghi_chu: '' });
+      setFormData({ so: '', loai: '', trich_yeu: '', co_quan_gui: '', han_xu_ly: '', muc_do: 'thuong', ghi_chu: '', nguoi_ky: '' });
       setFlash({ message: 'Thêm văn bản đi thành công! 🎉', type: 'thanh-cong' });
       banPhaoHoa();
     }
@@ -177,6 +199,7 @@ export function OutgoingDocs() {
                 <th className="p-4">Trích yếu nội dung</th>
                 <th className="p-4">Cơ quan gửi</th>
                 <th className="p-4">Hạn xử lý</th>
+                <th className="p-4">Người ký</th>
                 <th className="p-4">Người tạo</th>
                 <th className="p-4">Trạng thái</th>
                 <th className="p-4">Thao tác</th>
@@ -190,6 +213,7 @@ export function OutgoingDocs() {
                   <td className="p-4 min-w-[200px] max-w-[300px] truncate" title={doc.trich_yeu}>{doc.trich_yeu}</td>
                   <td className="p-4 whitespace-nowrap">{doc.co_quan_gui || '—'}</td>
                   <td className="p-4 whitespace-nowrap">{formatDate(doc.han_xu_ly)}</td>
+                  <td className="p-4 whitespace-nowrap">{doc.nguoi_ky || '—'}</td>
                   <td className="p-4 whitespace-nowrap">{doc.nguoi_tao || '—'}</td>
                   <td className="p-4 whitespace-nowrap">
                     {isAuthorized ? (
@@ -292,6 +316,15 @@ export function OutgoingDocs() {
                     <option value="khan">Khẩn</option>
                     <option value="thuong-khan">Thượng khẩn</option>
                     <option value="hoa-toc">Hỏa tốc</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Người ký</label>
+                  <select className="o-nhap py-2.5 cursor-pointer appearance-none" value={formData.nguoi_ky} onChange={e => setFormData({...formData, nguoi_ky: e.target.value})}>
+                    <option value="">-- Chọn người ký --</option>
+                    {signers.map(signer => (
+                      <option key={signer.id} value={signer.name}>{signer.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
