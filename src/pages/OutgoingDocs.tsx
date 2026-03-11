@@ -69,8 +69,6 @@ export function OutgoingDocs() {
     trichYeu: '',
     noiNhan: '',
     nguoiKy: '',
-    ngayBanHanh: new Date().toISOString().split('T')[0],
-    hanXuLy: '',
     mucDo: 'thuong',
     ghiChu: ''
   });
@@ -149,8 +147,6 @@ export function OutgoingDocs() {
       trichYeu: formData.trichYeu,
       noiNhan: formData.noiNhan,
       nguoiKy: formData.nguoiKy,
-      ngayBanHanh: formData.ngayBanHanh,
-      hanXuLy: formData.hanXuLy || null,
       trangThai: 'cho-duyet',
       nguoiTao: userName
     };
@@ -244,13 +240,11 @@ export function OutgoingDocs() {
           <table className="w-full text-sm text-left">
             <thead className="bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-xs border-b-2 border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="p-4">Ngày tháng</th>
                 <th className="p-4">Số/Ký hiệu</th>
                 <th className="p-4">Loại VB</th>
                 <th className="p-4">Trích yếu nội dung</th>
                 <th className="p-4">Nơi nhận</th>
                 <th className="p-4">Người ký</th>
-                <th className="p-4">Hạn xử lý</th>
                 <th className="p-4">Người tạo</th>
                 <th className="p-4">Trạng thái</th>
                 <th className="p-4">Thao tác</th>
@@ -259,16 +253,11 @@ export function OutgoingDocs() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {filteredDocs.length > 0 ? filteredDocs.map(doc => (
                 <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <td className="p-4 whitespace-nowrap font-medium text-slate-600 dark:text-slate-300">{formatDate(doc.ngayBanHanh)}</td>
                   <td className="p-4 font-bold text-blue-800 dark:text-blue-400 whitespace-nowrap">{doc.so}</td>
                   <td className="p-4 whitespace-nowrap">{doc.loai}</td>
                   <td className="p-4 min-w-[200px] max-w-[300px] truncate" title={doc.trichYeu}>{doc.trichYeu}</td>
                   <td className="p-4 min-w-[150px]">{doc.noiNhan}</td>
                   <td className="p-4 whitespace-nowrap">{doc.nguoiKy}</td>
-                  <td className="p-4 whitespace-nowrap">
-                    <div>{formatDate(doc.hanXuLy)}</div>
-                    {getDeadlineBadge(doc.hanXuLy, doc.trangThai)}
-                  </td>
                   <td className="p-4 whitespace-nowrap text-slate-500 text-xs font-medium">{doc.nguoiTao || '—'}</td>
                   <td className="p-4 whitespace-nowrap">
                     {canEditStatus ? (
@@ -365,23 +354,14 @@ export function OutgoingDocs() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Ngày ban hành *</label>
-                  <input type="date" className="o-nhap py-2.5" required value={formData.ngayBanHanh} onChange={e => setFormData({...formData, ngayBanHanh: e.target.value})} />
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Mức độ ưu tiên</label>
+                  <select className="o-nhap py-2.5 cursor-pointer appearance-none" value={formData.mucDo} onChange={e => setFormData({...formData, mucDo: e.target.value})}>
+                    <option value="thuong">Thường</option>
+                    <option value="khan">Khẩn</option>
+                    <option value="thuong-khan">Thượng khẩn</option>
+                    <option value="hoa-toc">Hỏa tốc</option>
+                  </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Hạn xử lý</label>
-                  <input type="date" className="o-nhap py-2.5" value={formData.hanXuLy} onChange={e => setFormData({...formData, hanXuLy: e.target.value})} />
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Mức độ ưu tiên</label>
-                <select className="o-nhap py-2.5 cursor-pointer appearance-none" value={formData.mucDo} onChange={e => setFormData({...formData, mucDo: e.target.value})}>
-                  <option value="thuong">Thường</option>
-                  <option value="khan">Khẩn</option>
-                  <option value="thuong-khan">Thượng khẩn</option>
-                  <option value="hoa-toc">Hỏa tốc</option>
-                </select>
               </div>
 
               <div className="mb-6">
