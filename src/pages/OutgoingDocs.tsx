@@ -57,6 +57,22 @@ export function OutgoingDocs() {
 
   const user = JSON.parse(localStorage.getItem('nguoiDungHienTai') || '{"tenHienThi":"Quản trị viên", "vaiTro": "Admin"}');
 
+  const isAuthorized = user.vaiTro === 'Admin' || user.vaiTro === 'Văn thư';
+
+  const handleStatusChange = async (id: number, newStatus: string) => {
+    const { error } = await supabase
+      .from('outgoing_docs')
+      .update({ trang_thai: newStatus })
+      .eq('id', id);
+    
+    if (error) {
+      setFlash({ message: 'Lỗi khi cập nhật trạng thái!', type: 'canh-bao' });
+    } else {
+      setDocs(docs.map(d => d.id === id ? { ...d, trang_thai: newStatus } : d));
+      setFlash({ message: 'Đã cập nhật trạng thái!', type: 'thanh-cong' });
+    }
+  };
+
   const filteredDocs = docs.filter(doc => 
     doc.so.toLowerCase().includes(searchTerm.toLowerCase()) ||
     doc.trich_yeu.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,7 +109,7 @@ export function OutgoingDocs() {
       co_quan_gui: formData.co_quan_gui,
       han_xu_ly: formData.han_xu_ly || null,
       nguoi_tao: userName,
-      trang_thai: 'Chờ xử lý',
+      trang_thai: 'Đang xử lý',
       ngay_ban_hanh: new Date().toISOString().split('T')[0]
     };
 
@@ -176,13 +192,28 @@ export function OutgoingDocs() {
                   <td className="p-4 whitespace-nowrap">{formatDate(doc.han_xu_ly)}</td>
                   <td className="p-4 whitespace-nowrap">{doc.nguoi_tao || '—'}</td>
                   <td className="p-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      doc.trang_thai === 'Hoàn thành' ? 'bg-green-100 text-green-700' :
-                      doc.trang_thai === 'Đang xử lý' ? 'bg-blue-100 text-blue-700' :
-                      'bg-slate-100 text-slate-700'
-                    }`}>
-                      {doc.trang_thai || 'Chờ xử lý'}
-                    </span>
+                    {isAuthorized ? (
+                      <select 
+                        className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${
+                          doc.trang_thai === 'Hoàn thành' ? 'bg-green-100 text-green-700' :
+                          doc.trang_thai === 'Đang xử lý' ? 'bg-blue-100 text-blue-700' :
+                          'bg-slate-100 text-slate-700'
+                        }`}
+                        value={doc.trang_thai}
+                        onChange={(e) => handleStatusChange(doc.id, e.target.value)}
+                      >
+                        <option value="Đang xử lý">Đang xử lý</option>
+                        <option value="Hoàn thành">Hoàn thành</option>
+                      </select>
+                    ) : (
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        doc.trang_thai === 'Hoàn thành' ? 'bg-green-100 text-green-700' :
+                        doc.trang_thai === 'Đang xử lý' ? 'bg-blue-100 text-blue-700' :
+                        'bg-slate-100 text-slate-700'
+                      }`}>
+                        {doc.trang_thai || 'Chờ xử lý'}
+                      </span>
+                    )}
                   </td>
                   <td className="p-4 whitespace-nowrap">
                     <div className="flex gap-2">
