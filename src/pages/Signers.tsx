@@ -52,7 +52,8 @@ export function Signers() {
         .eq('id', editingSigner.id);
       
       if (error) {
-        setFlash({ message: 'Lỗi khi cập nhật người ký!', type: 'canh-bao' });
+        console.error('Error updating signer:', error);
+        setFlash({ message: `Lỗi khi cập nhật người ký: ${error.message}`, type: 'canh-bao' });
       } else {
         setFlash({ message: 'Cập nhật người ký thành công!', type: 'thanh-cong' });
         fetchSigners();
@@ -63,7 +64,8 @@ export function Signers() {
         .insert([{ name: formData.name, title: formData.title, status: formData.status }]);
       
       if (error) {
-        setFlash({ message: 'Lỗi khi thêm người ký!', type: 'canh-bao' });
+        console.error('Error adding signer:', error);
+        setFlash({ message: `Lỗi khi thêm người ký: ${error.message}`, type: 'canh-bao' });
       } else {
         setFlash({ message: 'Thêm người ký mới thành công!', type: 'thanh-cong' });
         fetchSigners();
