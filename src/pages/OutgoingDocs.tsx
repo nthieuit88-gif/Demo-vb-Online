@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { FlashMessage, FlashType } from '../components/FlashMessage';
 import { banPhaoHoa } from '../utils/confetti';
-import { getSigners, Signer } from './Signers';
+import { Signer } from './Signers';
+import { supabase } from '../lib/supabase';
 
 interface OutgoingDoc {
   id: number;
@@ -32,8 +33,17 @@ export function OutgoingDocs() {
   const [signers, setSigners] = useState<Signer[]>([]);
 
   useEffect(() => {
-    setSigners(getSigners().filter(s => s.status === 'Hoạt động'));
+    fetchSigners();
   }, []);
+
+  const fetchSigners = async () => {
+    const { data, error } = await supabase.from('signers').select('*').eq('status', 'Hoạt động');
+    if (error) {
+      console.error('Error fetching signers:', error);
+    } else {
+      setSigners(data || []);
+    }
+  };
 
   const [formData, setFormData] = useState({
     so: '',

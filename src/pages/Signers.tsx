@@ -1,28 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { FlashMessage, FlashType } from '../components/FlashMessage';
+import { supabase } from '../lib/supabase';
 
 export interface Signer {
   id: number;
   name: string;
   title: string;
   status: 'Hoạt động' | 'Khóa';
-}
-
-const defaultSigners: Signer[] = [
-  { id: 1, name: 'Nguyễn Văn A', title: 'Giám đốc', status: 'Hoạt động' },
-  { id: 2, name: 'Trần Thị B', title: 'Phó Giám đốc', status: 'Hoạt động' },
-  { id: 3, name: 'Lê Văn C', title: 'Trưởng phòng', status: 'Hoạt động' },
-  { id: 4, name: 'Phạm Thị D', title: 'Phó Trưởng phòng', status: 'Hoạt động' }
-];
-
-export function getSigners(): Signer[] {
-  const stored = localStorage.getItem('danhSachNguoiKy');
-  if (stored) {
-    return JSON.parse(stored);
-  }
-  localStorage.setItem('danhSachNguoiKy', JSON.stringify(defaultSigners));
-  return defaultSigners;
 }
 
 export function Signers() {
@@ -40,52 +25,59 @@ export function Signers() {
   const userRole = user.vaiTro || 'Người dùng';
 
   useEffect(() => {
-    setSigners(getSigners());
+    fetchSigners();
   }, []);
 
-  const saveSigners = (newSigners: Signer[]) => {
-    setSigners(newSigners);
-    localStorage.setItem('danhSachNguoiKy', JSON.stringify(newSigners));
+  const fetchSigners = async () => {
+    const { data, error } = await supabase.from('signers').select('*');
+    if (error) {
+      console.error('Error fetching signers:', error);
+      setFlash({ message: 'Lỗi khi tải dữ liệu người ký!', type: 'canh-bao' });
+    } else {
+      setSigners(data || []);
+    }
   };
 
-  if (userRole !== 'Admin' && userRole !== 'Văn thư') {
-    return (
-      <Layout title="✍️ Quản lý người ký">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center shadow-sm">
-          <div className="text-4xl mb-4">🔒</div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Không có quyền truy cập</h2>
-          <p className="text-slate-500 dark:text-slate-400">Chỉ tài khoản Admin hoặc Văn thư mới có quyền truy cập trang này.</p>
-        </div>
-      </Layout>
-    );
-  }
-
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSigner) {
-      const updated = signers.map(s => s.id === editingSigner.id ? { ...s, ...formData } as Signer : s);
-      saveSigners(updated);
-      setFlash({ message: 'Cập nhật người ký thành công!', type: 'thanh-cong' });
+      const { error } = await supabase
+        .from('signers')
+        .update({ name: formData.name, title: formData.title, status: formData.status })
+        .eq('id', editingSigner.id);
+      
+      if (error) {
+        setFlash({ message: 'Lỗi khi cập nhật người ký!', type: 'canh-bao' });
+      } else {
+        setFlash({ message: 'Cập nhật người ký thành công!', type: 'thanh-cong' });
+        fetchSigners();
+      }
     } else {
-      const newSigner: Signer = {
-        id: Date.now(),
-        name: formData.name || '',
-        title: formData.title || '',
-        status: formData.status as Signer['status'] || 'Hoạt động'
-      };
-      saveSigners([...signers, newSigner]);
-      setFlash({ message: 'Thêm người ký mới thành công!', type: 'thanh-cong' });
+      const { error } = await supabase
+        .from('signers')
+        .insert([{ name: formData.name, title: formData.title, status: formData.status }]);
+      
+      if (error) {
+        setFlash({ message: 'Lỗi khi thêm người ký!', type: 'canh-bao' });
+      } else {
+        setFlash({ message: 'Thêm người ký mới thành công!', type: 'thanh-cong' });
+        fetchSigners();
+      }
     }
     setIsModalOpen(false);
     setEditingSigner(null);
     setFormData({ name: '', title: '', status: 'Hoạt động' });
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Bạn có chắc muốn xóa người ký này?')) {
-      const updated = signers.filter(s => s.id !== id);
-      saveSigners(updated);
-      setFlash({ message: 'Đã xóa người ký!', type: 'canh-bao' });
+      const { error } = await supabase.from('signers').delete().eq('id', id);
+      if (error) {
+        setFlash({ message: 'Lỗi khi xóa người ký!', type: 'canh-bao' });
+      } else {
+        setFlash({ message: 'Đã xóa người ký!', type: 'canh-bao' });
+        fetchSigners();
+      }
     }
   };
 
