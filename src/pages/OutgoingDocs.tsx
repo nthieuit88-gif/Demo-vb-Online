@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { FlashMessage, FlashType } from '../components/FlashMessage';
 import { banPhaoHoa } from '../utils/confetti';
+import { getSigners, Signer } from './Signers';
 
 interface OutgoingDoc {
   id: number;
@@ -28,6 +29,11 @@ export function OutgoingDocs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [flash, setFlash] = useState<{ message: string; type: FlashType } | null>(null);
+  const [signers, setSigners] = useState<Signer[]>([]);
+
+  useEffect(() => {
+    setSigners(getSigners().filter(s => s.status === 'Hoạt động'));
+  }, []);
 
   const [formData, setFormData] = useState({
     so: '',
@@ -289,10 +295,9 @@ export function OutgoingDocs() {
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Người ký *</label>
                   <select className="o-nhap py-2.5 cursor-pointer appearance-none" required value={formData.nguoiKy} onChange={e => setFormData({...formData, nguoiKy: e.target.value})}>
                     <option value="">-- Chọn người ký --</option>
-                    <option value="Nguyễn Văn A">Nguyễn Văn A (Giám đốc)</option>
-                    <option value="Trần Thị B">Trần Thị B (Phó Giám đốc)</option>
-                    <option value="Lê Văn C">Lê Văn C (Trưởng phòng)</option>
-                    <option value="Phạm Thị D">Phạm Thị D (Phó Trưởng phòng)</option>
+                    {signers.map(s => (
+                      <option key={s.id} value={s.name}>{s.name} ({s.title})</option>
+                    ))}
                   </select>
                 </div>
               </div>

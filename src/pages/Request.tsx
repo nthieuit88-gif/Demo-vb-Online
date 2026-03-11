@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { FlashMessage, FlashType } from '../components/FlashMessage';
 import { banPhaoHoa } from '../utils/confetti';
+import { getSigners, Signer } from './Signers';
 
 export function Request() {
   const [step, setStep] = useState(1);
@@ -10,14 +11,19 @@ export function Request() {
   const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState({ so: '', ma: '', time: '' });
+  const [signers, setSigners] = useState<Signer[]>([]);
+
+  useEffect(() => {
+    setSigners(getSigners().filter(s => s.status === 'Hoạt động'));
+  }, []);
 
   const [formData, setFormData] = useState({
     loai: '',
     doKhan: 'thuong',
     trichYeu: '',
     phongBan: '',
-    nguoiKy: 'Nguyễn Văn A',
-    chucDanh: 'Giám đốc',
+    nguoiKy: '',
+    chucDanh: '',
     ngayKy: new Date().toISOString().split('T')[0],
     noiNhan: '',
     ghiChu: '',
@@ -36,11 +42,8 @@ export function Request() {
       
       // Tự động cập nhật chức danh khi chọn người ký
       if (id === 'nguoiKy') {
-        if (value === 'Nguyễn Văn A') newData.chucDanh = 'Giám đốc';
-        else if (value === 'Trần Thị B') newData.chucDanh = 'Phó Giám đốc';
-        else if (value === 'Lê Văn C') newData.chucDanh = 'Trưởng phòng';
-        else if (value === 'Phạm Thị D') newData.chucDanh = 'Phó Trưởng phòng';
-        else newData.chucDanh = '';
+        const selectedSigner = signers.find(s => s.name === value);
+        newData.chucDanh = selectedSigner ? selectedSigner.title : '';
       }
       
       return newData;
@@ -110,8 +113,8 @@ export function Request() {
 
   const resetForm = () => {
     setFormData({
-      loai: '', doKhan: 'thuong', trichYeu: '', phongBan: '', nguoiKy: 'Nguyễn Văn A',
-      chucDanh: 'Giám đốc', ngayKy: new Date().toISOString().split('T')[0], noiNhan: '', ghiChu: '', xacNhan: false
+      loai: '', doKhan: 'thuong', trichYeu: '', phongBan: '', nguoiKy: '',
+      chucDanh: '', ngayKy: new Date().toISOString().split('T')[0], noiNhan: '', ghiChu: '', xacNhan: false
     });
     setFiles([]);
     setStep(1);
@@ -220,10 +223,9 @@ export function Request() {
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="nguoiKy">Người ký *</label>
                 <select id="nguoiKy" className="o-nhap py-2.5 cursor-pointer appearance-none" required value={formData.nguoiKy} onChange={handleChange}>
                   <option value="">-- Chọn người ký --</option>
-                  <option value="Nguyễn Văn A">Nguyễn Văn A (Giám đốc)</option>
-                  <option value="Trần Thị B">Trần Thị B (Phó Giám đốc)</option>
-                  <option value="Lê Văn C">Lê Văn C (Trưởng phòng)</option>
-                  <option value="Phạm Thị D">Phạm Thị D (Phó Trưởng phòng)</option>
+                  {signers.map(s => (
+                    <option key={s.id} value={s.name}>{s.name} ({s.title})</option>
+                  ))}
                 </select>
               </div>
               <div>

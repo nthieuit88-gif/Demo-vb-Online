@@ -89,6 +89,11 @@ export function Layout({ children, title = 'Tổng quan Dashboard' }: LayoutProp
           </button>
 
           <h5 className="text-[0.7rem] font-bold text-white/50 uppercase tracking-wider px-3 mt-4 mb-1">Tiện ích</h5>
+          {(userRole === 'Admin' || userRole === 'Văn thư') && (
+            <Link to="/signers" className={`flex items-center gap-3 px-4 py-3 rounded-xl text-white/75 text-sm font-medium transition-all hover:bg-white/10 hover:text-white ${location.pathname === '/signers' ? 'bg-white/20 text-white font-semibold' : ''}`}>
+              <span className="text-lg w-6 text-center">✍️</span> Quản lý người ký
+            </Link>
+          )}
           {userRole === 'Admin' && (
             <Link to="/admin" className={`flex items-center gap-3 px-4 py-3 rounded-xl text-white/75 text-sm font-medium transition-all hover:bg-white/10 hover:text-white ${location.pathname === '/admin' ? 'bg-white/20 text-white font-semibold' : ''}`}>
               <span className="text-lg w-6 text-center">⚙️</span> Quản trị hệ thống

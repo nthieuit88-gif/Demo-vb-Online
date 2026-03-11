@@ -9,6 +9,7 @@ import { OutgoingDocs } from './pages/OutgoingDocs';
 import { IncomingDocs } from './pages/IncomingDocs';
 import { DocumentBooks } from './pages/DocumentBooks';
 import { SystemAdmin } from './pages/SystemAdmin';
+import { Signers } from './pages/Signers';
 
 function FloatingHome() {
   const location = useLocation();
@@ -101,6 +102,7 @@ export default function App() {
         <Route path="/incoming" element={<IncomingDocs />} />
         <Route path="/books" element={<DocumentBooks />} />
         <Route path="/admin" element={<SystemAdmin />} />
+        <Route path="/signers" element={<Signers />} />
       </Routes>
     </Router>
   );
