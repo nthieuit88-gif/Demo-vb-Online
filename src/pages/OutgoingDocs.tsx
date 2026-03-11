@@ -47,7 +47,7 @@ export function OutgoingDocs() {
     
     if (error) {
       console.error('Error fetching docs:', error);
-      setFlash({ message: 'Lỗi khi tải danh sách văn bản!', type: 'canh-bao' });
+      setFlash({ message: `Lỗi khi tải danh sách văn bản: ${error.message}`, type: 'canh-bao' });
     } else {
       setDocs(data || []);
     }
