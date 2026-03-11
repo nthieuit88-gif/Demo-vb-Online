@@ -101,18 +101,6 @@ export function OutgoingDocs() {
     (doc.co_quan_gui && doc.co_quan_gui.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Bạn có chắc muốn xóa văn bản này không?')) {
-      const { error } = await supabase.from('outgoing_docs').delete().eq('id', id);
-      if (error) {
-        setFlash({ message: 'Lỗi khi xóa văn bản!', type: 'canh-bao' });
-      } else {
-        setDocs(docs.filter(d => d.id !== id));
-        setFlash({ message: 'Đã xóa văn bản!', type: 'canh-bao' });
-      }
-    }
-  };
-
   const handleView = (id: number) => {
     const doc = docs.find(d => d.id === id);
     if (doc) {
@@ -242,7 +230,6 @@ export function OutgoingDocs() {
                   <td className="p-4 whitespace-nowrap">
                     <div className="flex gap-2">
                       <button className="p-1.5 rounded-md border border-slate-200 hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors" onClick={() => handleView(doc.id)} title="Xem chi tiết">👁️</button>
-                      <button className="p-1.5 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors" onClick={() => handleDelete(doc.id)} title="Xóa">🗑️</button>
                     </div>
                   </td>
                 </tr>

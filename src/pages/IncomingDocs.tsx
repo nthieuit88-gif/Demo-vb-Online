@@ -109,18 +109,6 @@ export function IncomingDocs() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Bạn có chắc muốn xóa văn bản đến này không?')) {
-      const { error } = await supabase.from('incoming_docs').delete().eq('id', id);
-      if (error) {
-        setFlash({ message: 'Lỗi khi xóa văn bản!', type: 'canh-bao' });
-      } else {
-        setDocs(docs.filter(d => d.id !== id));
-        setFlash({ message: 'Đã xóa văn bản!', type: 'canh-bao' });
-      }
-    }
-  };
-
   const handleView = (id: number) => {
     const doc = docs.find(d => d.id === id);
     if (doc) {
@@ -278,7 +266,6 @@ export function IncomingDocs() {
                       {doc.trangThai !== 'hoan-thanh' && (
                         <button className="p-1.5 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 transition-colors" onClick={() => handleApprove(doc.id)} title="Đánh dấu hoàn thành">✅</button>
                       )}
-                      <button className="p-1.5 rounded-md bg-red-500 text-white hover:bg-red-600 transition-colors" onClick={() => handleDelete(doc.id)} title="Xóa">🗑️</button>
                     </div>
                   </td>
                 </tr>
