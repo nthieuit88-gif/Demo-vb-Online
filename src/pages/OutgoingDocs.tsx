@@ -91,7 +91,7 @@ export function OutgoingDocs() {
       loai: formData.loai,
       trich_yeu: formData.trich_yeu,
       co_quan_gui: formData.co_quan_gui,
-      han_xu_ly: formData.han_xu_ly,
+      han_xu_ly: formData.han_xu_ly || null,
       nguoi_tao: userName,
       trang_thai: 'Chờ xử lý',
       ngay_ban_hanh: new Date().toISOString().split('T')[0]
