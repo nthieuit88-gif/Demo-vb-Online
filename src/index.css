@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --mau-chinh: #1e40af;
+    --mau-chinh-dam: #1e3a8a;
+    --mau-chinh-nhat: #3b82f6;
+    --mau-phu: #7c3aed;
+    --mau-thanh-cong: #16a34a;
+    --mau-canh-bao: #d97706;
+    --mau-loi: #dc2626;
+    --mau-nen: #f0f4ff;
+    --mau-trang: #ffffff;
+    --bong-mo: 0 4px 20px rgba(0,0,0,0.08);
+    --bong-manh: 0 10px 40px rgba(30,64,175,0.25);
+    --bo-goc: 1rem;
+    --chuyen-tiep: all 0.3s ease;
+  }
+
+  [data-chu-de="toi"] {
+    --mau-nen: #0f172a;
+    --mau-trang: #1e293b;
+    --mau-chu: #e2e8f0;
+    --mau-chu-phu: #94a3b8;
+    --mau-vien: #334155;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--mau-nen);
+    color: #1e293b;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    min-height: 100vh;
+  }
+
+  [data-chu-de="toi"] body {
+    color: #e2e8f0;
+  }
+}
+
+@layer components {
+  .nut {
+    @apply inline-flex items-center gap-2 px-7 py-3 rounded-2xl font-semibold text-[0.95rem] cursor-pointer border-none transition-all duration-300 no-underline;
+  }
+
+  .nut-chinh {
+    background: linear-gradient(135deg, var(--mau-chinh-nhat), var(--mau-chinh));
+    color: white;
+    box-shadow: 0 4px 15px rgba(59,130,246,0.4);
+  }
+
+  .nut-chinh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59,130,246,0.5);
+  }
+
+  .nut-vien {
+    background: transparent;
+    border: 2px solid var(--mau-chinh-nhat);
+    color: var(--mau-chinh-nhat);
+  }
+
+  .nut-vien:hover {
+    background: var(--mau-chinh-nhat);
+    color: white;
+  }
+
+  .nut-trang {
+    background: white;
+    color: var(--mau-chinh);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .nut-trang:hover {
+    background: var(--mau-nen);
+    transform: translateY(-2px);
+  }
+
+  .nut-nho {
+    @apply px-4 py-1.5 text-sm;
+  }
+
+  .nut-lon {
+    @apply px-10 py-4 text-lg;
+  }
+  
+  .o-nhap {
+    @apply w-full px-4 py-3.5 border-2 border-slate-200 rounded-xl font-sans text-[0.95rem] bg-transparent text-inherit transition-all duration-300 outline-none;
+  }
+
+  [data-chu-de="toi"] .o-nhap {
+    @apply border-slate-700 bg-slate-900 text-slate-200;
+  }
+
+  .o-nhap:focus {
+    border-color: var(--mau-chinh-nhat);
+    box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
+  }
+}
+
+@keyframes troXuatHienLen {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes nhipTim {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@keyframes quayTron {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes truotVao {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.hieu-ung-xuat-hien {
+  animation: troXuatHienLen 0.6s ease forwards;
+}
+
+.hieu-ung-truot-vao {
+  animation: truotVao 0.5s ease forwards;
+}
