@@ -12,7 +12,7 @@ import { SystemAdmin } from './pages/SystemAdmin';
 
 function FloatingHome() {
   const location = useLocation();
-  const inIframe = window.self !== window.top;
+  const isSimulatorIframe = window.name === 'mobile-simulator-iframe';
   
   // Không hiển thị nút Home ở trang chủ
   if (location.pathname === '/') return null;
@@ -20,7 +20,7 @@ function FloatingHome() {
   return (
     <Link 
       to="/" 
-      className={`fixed ${inIframe ? 'bottom-6 right-6' : 'bottom-6 right-6 md:bottom-8 md:right-8'} w-14 h-14 bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(37,99,235,0.4)] hover:-translate-y-1.5 hover:shadow-[0_15px_40px_rgba(37,99,235,0.6)] hover:from-blue-700 hover:to-blue-600 transition-all duration-300 z-[9999] group`}
+      className={`fixed ${isSimulatorIframe ? 'bottom-6 right-6' : 'bottom-6 right-6 md:bottom-8 md:right-8'} w-14 h-14 bg-gradient-to-tr from-blue-600 to-blue-500 text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(37,99,235,0.4)] hover:-translate-y-1.5 hover:shadow-[0_15px_40px_rgba(37,99,235,0.6)] hover:from-blue-700 hover:to-blue-600 transition-all duration-300 z-[9999] group`}
       title="Về trang chủ"
     >
       <span className="text-2xl group-hover:scale-110 transition-transform duration-300">🏠</span>
@@ -29,17 +29,20 @@ function FloatingHome() {
 }
 
 function MobileSimulator() {
-  const inIframe = window.self !== window.top;
+  const isSimulatorIframe = window.name === 'mobile-simulator-iframe';
   const [isMobileMode, setIsMobileMode] = useState(() => {
+    if (window.name === 'mobile-simulator-iframe') return false;
     return localStorage.getItem('mobileMode') === 'true';
   });
 
   useEffect(() => {
-    localStorage.setItem('mobileMode', isMobileMode.toString());
-  }, [isMobileMode]);
+    if (!isSimulatorIframe) {
+      localStorage.setItem('mobileMode', isMobileMode.toString());
+    }
+  }, [isMobileMode, isSimulatorIframe]);
 
-  // Không hiển thị trong iframe
-  if (inIframe) return null;
+  // Không hiển thị trong iframe của chính simulator để tránh lặp vô hạn
+  if (isSimulatorIframe) return null;
 
   if (isMobileMode) {
     return (
@@ -59,9 +62,10 @@ function MobileSimulator() {
         
         <div className="w-[375px] h-[812px] max-h-[85vh] bg-white dark:bg-slate-950 rounded-[2.5rem] border-[12px] border-slate-800 overflow-hidden shadow-2xl relative flex flex-col ring-1 ring-white/10">
           {/* Notch simulation */}
-          <div className="absolute top-0 inset-x-0 h-6 bg-slate-800 rounded-b-3xl w-40 mx-auto z-50"></div>
+          <div className="absolute top-0 inset-x-0 h-6 bg-slate-800 rounded-b-3xl w-40 mx-auto z-50 pointer-events-none"></div>
           
           <iframe 
+            name="mobile-simulator-iframe"
             src={window.location.href} 
             className="w-full h-full border-none bg-white dark:bg-slate-900" 
             title="Mobile View"
