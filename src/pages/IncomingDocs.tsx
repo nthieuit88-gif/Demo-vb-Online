@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/Layout';
 import { FlashMessage, FlashType } from '../components/FlashMessage';
 import { banPhaoHoa } from '../utils/confetti';
+import { supabase } from '../lib/supabase';
 
 interface IncomingDoc {
   id: number;
@@ -25,10 +26,31 @@ const initialDocs: IncomingDoc[] = [
 ];
 
 export function IncomingDocs() {
-  const [docs, setDocs] = useState<IncomingDoc[]>(initialDocs);
+  const [docs, setDocs] = useState<IncomingDoc[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [flash, setFlash] = useState<{ message: string; type: FlashType } | null>(null);
+
+  useEffect(() => {
+    fetchDocs();
+  }, []);
+
+  const fetchDocs = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('incoming_docs')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching docs:', error);
+      setFlash({ message: 'Lỗi khi tải danh sách văn bản đến!', type: 'canh-bao' });
+    } else {
+      setDocs(data || []);
+    }
+    setLoading(false);
+  };
 
   const [formData, setFormData] = useState({
     so: '',
@@ -52,27 +74,50 @@ export function IncomingDocs() {
     doc.coQuanGui.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleApprove = (id: number) => {
+  const handleApprove = async (id: number) => {
     const doc = docs.find(d => d.id === id);
     if (doc && window.confirm(`Xác nhận hoàn thành xử lý văn bản "${doc.so}"?`)) {
-      setDocs(docs.map(d => d.id === id ? { ...d, trangThai: 'hoan-thanh' } : d));
-      setFlash({ message: 'Đã cập nhật trạng thái hoàn thành!', type: 'thanh-cong' });
-      banPhaoHoa();
+      const { error } = await supabase
+        .from('incoming_docs')
+        .update({ trangThai: 'hoan-thanh' })
+        .eq('id', id);
+
+      if (error) {
+        setFlash({ message: 'Lỗi khi cập nhật trạng thái!', type: 'canh-bao' });
+      } else {
+        setDocs(docs.map(d => d.id === id ? { ...d, trangThai: 'hoan-thanh' } : d));
+        setFlash({ message: 'Đã cập nhật trạng thái hoàn thành!', type: 'thanh-cong' });
+        banPhaoHoa();
+      }
     }
   };
 
-  const handleStatusChange = (id: number, newStatus: IncomingDoc['trangThai']) => {
-    setDocs(docs.map(d => d.id === id ? { ...d, trangThai: newStatus } : d));
-    setFlash({ message: 'Đã cập nhật trạng thái!', type: 'thanh-cong' });
-    if (newStatus === 'hoan-thanh') {
-      banPhaoHoa();
+  const handleStatusChange = async (id: number, newStatus: IncomingDoc['trangThai']) => {
+    const { error } = await supabase
+      .from('incoming_docs')
+      .update({ trangThai: newStatus })
+      .eq('id', id);
+
+    if (error) {
+      setFlash({ message: 'Lỗi khi cập nhật trạng thái!', type: 'canh-bao' });
+    } else {
+      setDocs(docs.map(d => d.id === id ? { ...d, trangThai: newStatus } : d));
+      setFlash({ message: 'Đã cập nhật trạng thái!', type: 'thanh-cong' });
+      if (newStatus === 'hoan-thanh') {
+        banPhaoHoa();
+      }
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Bạn có chắc muốn xóa văn bản đến này không?')) {
-      setDocs(docs.filter(d => d.id !== id));
-      setFlash({ message: 'Đã xóa văn bản!', type: 'canh-bao' });
+      const { error } = await supabase.from('incoming_docs').delete().eq('id', id);
+      if (error) {
+        setFlash({ message: 'Lỗi khi xóa văn bản!', type: 'canh-bao' });
+      } else {
+        setDocs(docs.filter(d => d.id !== id));
+        setFlash({ message: 'Đã xóa văn bản!', type: 'canh-bao' });
+      }
     }
   };
 
@@ -83,26 +128,36 @@ export function IncomingDocs() {
     }
   };
 
-  const handleAddSubmit = (e: React.FormEvent) => {
+  const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const userName = user.tenHienThi || user.email?.split('@')[0] || 'Người dùng';
 
-    const newDoc: IncomingDoc = {
-      id: Date.now(),
+    const newDocData = {
       so: formData.so,
       loai: formData.loai,
       trichYeu: formData.trichYeu,
       coQuanGui: formData.coQuanGui,
       ngayDen: formData.ngayDen,
-      hanXuLy: formData.hanXuLy,
+      hanXuLy: formData.hanXuLy || null,
       trangThai: 'cho-xu-ly',
       nguoiTao: userName
     };
-    setDocs([newDoc, ...docs]);
-    setIsModalOpen(false);
-    setFormData({ ...formData, so: '', trichYeu: '', coQuanGui: '', hanXuLy: '' });
-    setFlash({ message: 'Thêm văn bản đến thành công! 🎉', type: 'thanh-cong' });
-    banPhaoHoa();
+
+    const { data, error } = await supabase
+      .from('incoming_docs')
+      .insert([newDocData])
+      .select();
+
+    if (error) {
+      console.error('Error adding doc:', error);
+      setFlash({ message: 'Lỗi khi lưu văn bản đến!', type: 'canh-bao' });
+    } else {
+      if (data) setDocs([data[0], ...docs]);
+      setIsModalOpen(false);
+      setFormData({ ...formData, so: '', trichYeu: '', coQuanGui: '', hanXuLy: '' });
+      setFlash({ message: 'Thêm văn bản đến thành công! 🎉', type: 'thanh-cong' });
+      banPhaoHoa();
+    }
   };
 
   const statusLabels = {

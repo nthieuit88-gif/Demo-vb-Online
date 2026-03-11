@@ -80,14 +80,36 @@ export function Request() {
       }
       
       setIsSubmitting(true);
-      await new Promise(r => setTimeout(r, 2000));
       
       const nam = new Date().getFullYear();
       const soThuTu = String(Math.floor(Math.random() * 999) + 100).padStart(4, '0');
       const loaiAbbr = formData.loai.substring(0, 2).toUpperCase();
+      const soVanBan = `${loaiAbbr}-${soThuTu}/${nam}`;
       
+      // Lưu vào Supabase
+      const user = JSON.parse(localStorage.getItem('nguoiDungHienTai') || '{"tenHienThi":"Người dùng"}');
+      const { error } = await supabase
+        .from('outgoing_docs')
+        .insert([{
+          so: soVanBan,
+          loai: formData.loai,
+          trichYeu: formData.trichYeu,
+          noiNhan: formData.noiNhan,
+          nguoiKy: formData.nguoiKy,
+          ngayBanHanh: formData.ngayKy,
+          trangThai: 'cho-duyet',
+          nguoiTao: user.tenHienThi || 'Người dùng'
+        }]);
+
+      if (error) {
+        console.error('Error saving request:', error);
+        setFlash({ message: 'Lỗi khi lưu yêu cầu lên hệ thống!', type: 'canh-bao' });
+        setIsSubmitting(false);
+        return;
+      }
+
       setResult({
-        so: `${loaiAbbr}-${soThuTu}/${nam}`,
+        so: soVanBan,
         ma: `YC-${nam}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`,
         time: new Date().toLocaleString('vi-VN')
       });
